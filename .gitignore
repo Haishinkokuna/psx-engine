@@ -1,0 +1,49 @@
+# Build directories
+build/
+out/
+cmake-build-*/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+Makefile
+
+# Compiled output
+*.exe
+*.elf
+*.bin
+*.iso
+*.o
+*.a
+*.lib
+*.dll
+*.so
+*.dylib
+
+# Dear ImGui generated layout / settings file
+imgui.ini
+
+# IDE and editor files
+.vscode/
+.vs/
+*.user
+*.suo
+*.sln.docstash
+*.VC.db
+*.VC.opendb
+.idea/
+*.iml
+*.iws
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Antigravity agent data (local agent brain — not part of the project)
+.antigravity/brain/
+
+# FetchContent cache (CMake downloads these automatically)
+_deps/

@@ -1,0 +1,14 @@
+# Normalize line endings to LF in the repository for cross-platform consistency.
+# Windows checkouts will still use CRLF locally (autocrlf handles conversion).
+
+* text=auto eol=lf
+
+# Explicitly binary — never apply line-ending conversion to these.
+*.png binary
+*.jpg binary
+*.bin binary
+*.iso binary
+*.elf binary
+*.exe binary
+*.a   binary
+*.lib binary

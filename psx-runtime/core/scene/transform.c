@@ -42,13 +42,13 @@ void Transform_Init(Transform* t)
 
 void Transform_ComputeMatrix(const Transform* t, Mat3* out)
 {
-    /* Get sine/cosine for each axis (angles wrap automatically in Trig_Sin/Cos) */
-    int32_t sx = Trig_Sin(t->rotation.x);
-    int32_t cx = Trig_Cos(t->rotation.x);
-    int32_t sy = Trig_Sin(t->rotation.y);
-    int32_t cy = Trig_Cos(t->rotation.y);
-    int32_t sz = Trig_Sin(t->rotation.z);
-    int32_t cz = Trig_Cos(t->rotation.z);
+    /* Get sine/cosine for each axis (angles wrap automatically in FP_Sin/Cos) */
+    int32_t sx = FP_Sin(t->rotation.x);
+    int32_t cx = FP_Cos(t->rotation.x);
+    int32_t sy = FP_Sin(t->rotation.y);
+    int32_t cy = FP_Cos(t->rotation.y);
+    int32_t sz = FP_Sin(t->rotation.z);
+    int32_t cz = FP_Cos(t->rotation.z);
 
     /* Compute combined rotation matrix (Ry * Rx * Rz).
      * All sine/cosine values are FP4_12.

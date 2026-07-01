@@ -44,6 +44,7 @@ add_library(psx_mcp_server STATIC
     ${CMAKE_SOURCE_DIR}/psx-runtime/core/scene/transform.c
     ${CMAKE_SOURCE_DIR}/psx-runtime/core/scene/camera.c
     ${CMAKE_SOURCE_DIR}/psx-runtime/core/math/trig.c
+    ${CMAKE_SOURCE_DIR}/psx-runtime/core/memory/heap.c
 )
 
 

@@ -13,6 +13,7 @@
 #include "imgui_internal.h"
 
 #include <cstdio>
+#include <iostream>
 
 EditorLayout::EditorLayout()
     : m_layout_built(false)
@@ -29,8 +30,11 @@ void EditorLayout::Init()
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     /* Attempt to load retro PSX font */
-    ImFont* font = io.Fonts->AddFontFromFileTTF("assets/psx_font.ttf", 16.0f);
-    if (!font) {
+    FILE* f = fopen("assets/psx_font.ttf", "rb");
+    if (f) {
+        fclose(f);
+        io.Fonts->AddFontFromFileTTF("assets/psx_font.ttf", 16.0f);
+    } else {
         /* Fallback if missing */
         io.Fonts->AddFontDefault();
     }

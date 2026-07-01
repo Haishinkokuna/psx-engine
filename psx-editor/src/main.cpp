@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
     PsxArtifactRenderer renderer;
 
     layout.Init();
-    renderer.Init("shaders/psx_vert.glsl", "shaders/psx_frag.glsl");
+    renderer.Init("shaders/psxArtifact.vert", "shaders/psxArtifact.frag");
 
     bool done = false;
     while (!done) {

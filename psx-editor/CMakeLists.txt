@@ -45,7 +45,7 @@ include(FetchContent)
 FetchContent_Declare(
     imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
-    GIT_TAG        v1.91.5
+    GIT_TAG        v1.91.5-docking
     GIT_SHALLOW    TRUE
 )
 FetchContent_MakeAvailable(imgui)
@@ -61,8 +61,10 @@ FetchContent_Declare(
     GIT_SHALLOW    TRUE
 )
 # SDL2 has its own CMakeLists — configure it quietly.
-set(SDL_SHARED OFF CACHE BOOL "" FORCE)
-set(SDL_STATIC ON  CACHE BOOL "" FORCE)
+# We force SDL_SHARED ON to work around a bug in SDL2's CMakeLists.txt
+# where it attempts to set properties on the SDL2 target even if not created.
+set(SDL_SHARED ON CACHE BOOL "Workaround for SDL2 CMake bug" FORCE)
+set(SDL_STATIC ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(SDL2)
 
 # ---------------------------------------------------------------------------

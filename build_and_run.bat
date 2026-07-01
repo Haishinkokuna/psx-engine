@@ -35,7 +35,9 @@ echo.
 echo [3/3] Launching PSX Editor...
 cd build\editor\psx-editor
 if exist Debug\psx_editor.exe (
-    start Debug\psx_editor.exe
+    cd Debug
+    start psx_editor.exe
+    cd ..
 ) else if exist psx_editor.exe (
     start psx_editor.exe
 ) else (

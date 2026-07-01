@@ -10,9 +10,49 @@
 
 #include "PsxArtifactRenderer.h"
 
-/* Platform-agnostic OpenGL headers.
- * SDL2 provides SDL_opengl.h which includes the correct platform header. */
+/* Legacy GL header for basic types and GL 1.1 constants */
+#include <SDL.h>
 #include <SDL_opengl.h>
+#include <SDL_opengl_glext.h>
+
+#ifdef _WIN32
+// Minimal inline GL loader using SDL_GL_GetProcAddress
+#define glGenVertexArrays ((PFNGLGENVERTEXARRAYSPROC)SDL_GL_GetProcAddress("glGenVertexArrays"))
+#define glBindVertexArray ((PFNGLBINDVERTEXARRAYPROC)SDL_GL_GetProcAddress("glBindVertexArray"))
+#define glGenBuffers ((PFNGLGENBUFFERSPROC)SDL_GL_GetProcAddress("glGenBuffers"))
+#define glBindBuffer ((PFNGLBINDBUFFERPROC)SDL_GL_GetProcAddress("glBindBuffer"))
+#define glBufferData ((PFNGLBUFFERDATAPROC)SDL_GL_GetProcAddress("glBufferData"))
+#define glVertexAttribPointer ((PFNGLVERTEXATTRIBPOINTERPROC)SDL_GL_GetProcAddress("glVertexAttribPointer"))
+#define glEnableVertexAttribArray ((PFNGLENABLEVERTEXATTRIBARRAYPROC)SDL_GL_GetProcAddress("glEnableVertexAttribArray"))
+#define glGenFramebuffers ((PFNGLGENFRAMEBUFFERSPROC)SDL_GL_GetProcAddress("glGenFramebuffers"))
+#define glBindFramebuffer ((PFNGLBINDFRAMEBUFFERPROC)SDL_GL_GetProcAddress("glBindFramebuffer"))
+#define glFramebufferTexture2D ((PFNGLFRAMEBUFFERTEXTURE2DPROC)SDL_GL_GetProcAddress("glFramebufferTexture2D"))
+#define glGenRenderbuffers ((PFNGLGENRENDERBUFFERSPROC)SDL_GL_GetProcAddress("glGenRenderbuffers"))
+#define glBindRenderbuffer ((PFNGLBINDRENDERBUFFERPROC)SDL_GL_GetProcAddress("glBindRenderbuffer"))
+#define glRenderbufferStorage ((PFNGLRENDERBUFFERSTORAGEPROC)SDL_GL_GetProcAddress("glRenderbufferStorage"))
+#define glFramebufferRenderbuffer ((PFNGLFRAMEBUFFERRENDERBUFFERPROC)SDL_GL_GetProcAddress("glFramebufferRenderbuffer"))
+#define glCheckFramebufferStatus ((PFNGLCHECKFRAMEBUFFERSTATUSPROC)SDL_GL_GetProcAddress("glCheckFramebufferStatus"))
+#define glDeleteRenderbuffers ((PFNGLDELETERENDERBUFFERSPROC)SDL_GL_GetProcAddress("glDeleteRenderbuffers"))
+#define glDeleteFramebuffers ((PFNGLDELETEFRAMEBUFFERSPROC)SDL_GL_GetProcAddress("glDeleteFramebuffers"))
+#define glUseProgram ((PFNGLUSEPROGRAMPROC)SDL_GL_GetProcAddress("glUseProgram"))
+#define glUniformMatrix4fv ((PFNGLUNIFORMMATRIX4FVPROC)SDL_GL_GetProcAddress("glUniformMatrix4fv"))
+#define glUniform1i ((PFNGLUNIFORM1IPROC)SDL_GL_GetProcAddress("glUniform1i"))
+#define glGetUniformLocation ((PFNGLGETUNIFORMLOCATIONPROC)SDL_GL_GetProcAddress("glGetUniformLocation"))
+#define glCreateShader ((PFNGLCREATESHADERPROC)SDL_GL_GetProcAddress("glCreateShader"))
+#define glShaderSource ((PFNGLSHADERSOURCEPROC)SDL_GL_GetProcAddress("glShaderSource"))
+#define glCompileShader ((PFNGLCOMPILESHADERPROC)SDL_GL_GetProcAddress("glCompileShader"))
+#define glGetShaderiv ((PFNGLGETSHADERIVPROC)SDL_GL_GetProcAddress("glGetShaderiv"))
+#define glGetShaderInfoLog ((PFNGLGETSHADERINFOLOGPROC)SDL_GL_GetProcAddress("glGetShaderInfoLog"))
+#define glCreateProgram ((PFNGLCREATEPROGRAMPROC)SDL_GL_GetProcAddress("glCreateProgram"))
+#define glAttachShader ((PFNGLATTACHSHADERPROC)SDL_GL_GetProcAddress("glAttachShader"))
+#define glLinkProgram ((PFNGLLINKPROGRAMPROC)SDL_GL_GetProcAddress("glLinkProgram"))
+#define glGetProgramiv ((PFNGLGETPROGRAMIVPROC)SDL_GL_GetProcAddress("glGetProgramiv"))
+#define glGetProgramInfoLog ((PFNGLGETPROGRAMINFOLOGPROC)SDL_GL_GetProcAddress("glGetProgramInfoLog"))
+#define glDeleteShader ((PFNGLDELETESHADERPROC)SDL_GL_GetProcAddress("glDeleteShader"))
+#define glDeleteProgram ((PFNGLDELETEPROGRAMPROC)SDL_GL_GetProcAddress("glDeleteProgram"))
+#define glDeleteVertexArrays ((PFNGLDELETEVERTEXARRAYSPROC)SDL_GL_GetProcAddress("glDeleteVertexArrays"))
+#define glDeleteBuffers ((PFNGLDELETEBUFFERSPROC)SDL_GL_GetProcAddress("glDeleteBuffers"))
+#endif
 
 #include <cstdio>
 #include <cstring>
@@ -480,9 +520,9 @@ void PsxArtifactRenderer::RenderSceneGraph()
 
             if (ImGui::TreeNode(label)) {
                 ImGui::Text("Position: %.2f, %.2f, %.2f", 
-                    (float)ent->transform.position.vx / 4096.0f,
-                    (float)ent->transform.position.vy / 4096.0f,
-                    (float)ent->transform.position.vz / 4096.0f);
+                    (float)ent->transform.position.x / 4096.0f,
+                    (float)ent->transform.position.y / 4096.0f,
+                    (float)ent->transform.position.z / 4096.0f);
                 ImGui::TreePop();
             }
         }
@@ -500,9 +540,10 @@ void PsxArtifactRenderer::RenderMemoryMap()
     ImGui::Separator();
 
     /* 2MB Main RAM Progress */
-    float main_usage = (float)g_heap_allocated / (2.0f * 1024.0f * 1024.0f);
+    uint32_t allocated = PSX_HEAP_SIZE - Heap_GetFreeBytes();
+    float main_usage = (float)allocated / (float)PSX_HEAP_SIZE;
     char main_overlay[64];
-    snprintf(main_overlay, sizeof(main_overlay), "Main RAM: %u KB / 2048 KB", g_heap_allocated / 1024);
+    snprintf(main_overlay, sizeof(main_overlay), "Main RAM: %u KB / %u KB", allocated / 1024, PSX_HEAP_SIZE / 1024);
     ImGui::ProgressBar(main_usage, ImVec2(-1.0f, 0.0f), main_overlay);
 
     /* 512KB SPU RAM Progress (Mocked for now since spu_alloc is static in spu.c) */

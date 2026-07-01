@@ -98,12 +98,83 @@
  * --------------------------------------------------------------------------- */
 
 #define PSX_IO_BASE            ((uint32_t)0x1F801000U)
-#define PSX_GPU_BASE           ((uint32_t)0x1F801810U) /* GP0 / GP1 commands  */
-#define PSX_DMA_BASE           ((uint32_t)0x1F801080U) /* DMA controller      */
+#define PSX_GPU_BASE           ((uint32_t)0x1F801810U) /* GP0 / GP1 registers */
+#define PSX_DMA_BASE           ((uint32_t)0x1F801080U) /* DMA controller base */
 #define PSX_CDROM_BASE         ((uint32_t)0x1F801800U) /* CD-ROM interface    */
 #define PSX_SPU_BASE           ((uint32_t)0x1F801C00U) /* Sound Processing    */
 #define PSX_TIMER_BASE         ((uint32_t)0x1F801100U) /* Hardware timers     */
 #define PSX_JOY_BASE           ((uint32_t)0x1F801040U) /* Joypad / SIO        */
+
+/* ---------------------------------------------------------------------------
+ * GPU Register Addresses
+ * GP0: Data/command port — receives drawing primitives, VRAM write data.
+ * GP1: Control port — resets GPU, sets display mode, acknowledges IRQ.
+ * GPUSTAT: Read-only GPU status word. Bit 28 = ready for GP0 command,
+ *           Bit 27 = ready for VRAM data (DMA), Bit 26 = DMA direction.
+ * --------------------------------------------------------------------------- */
+
+#define PSX_GPU_GP0            ((uint32_t)0x1F801810U) /* Write: GPU command   */
+#define PSX_GPU_GP1            ((uint32_t)0x1F801814U) /* Write: GPU control   */
+#define PSX_GPU_GPUREAD        ((uint32_t)0x1F801810U) /* Read:  VRAM data out */
+#define PSX_GPU_GPUSTAT        ((uint32_t)0x1F801814U) /* Read:  GPU status    */
+
+/* GPUSTAT bit masks (read from PSX_GPU_GPUSTAT) */
+#define PSX_GPUSTAT_READY_CMD  ((uint32_t)(1U << 28)) /* Ready to receive GP0 cmd  */
+#define PSX_GPUSTAT_READY_DMA  ((uint32_t)(1U << 27)) /* Ready to receive DMA data */
+#define PSX_GPUSTAT_DMA_DIR    ((uint32_t)(3U << 29)) /* DMA direction bits [30:29]*/
+
+/* GP1 command codes (upper byte of the 32-bit GP1 write value).
+ * These control the GPU's display and reset state. */
+#define PSX_GP1_RESET_GPU      ((uint32_t)0x00000000U) /* GP1(0x00): Reset GPU     */
+#define PSX_GP1_DISP_ENABLE    ((uint32_t)0x03000000U) /* GP1(0x03): Display on/off*/
+#define PSX_GP1_DMA_DIR        ((uint32_t)0x04000000U) /* GP1(0x04): DMA direction */
+#define PSX_GP1_DISP_START     ((uint32_t)0x05000000U) /* GP1(0x05): Display start */
+#define PSX_GP1_HDISP_RANGE    ((uint32_t)0x06000000U) /* GP1(0x06): H display rng */
+#define PSX_GP1_VDISP_RANGE    ((uint32_t)0x07000000U) /* GP1(0x07): V display rng */
+#define PSX_GP1_DISP_MODE      ((uint32_t)0x08000000U) /* GP1(0x08): Display mode  */
+
+/* GP0 command codes (upper byte of the 32-bit GP0 write value).
+ * These are embedded in the 'tag' word of every GPU primitive packet. */
+#define PSX_GP0_DRAW_MODE      ((uint32_t)0xE1000000U) /* Set draw mode            */
+#define PSX_GP0_FILL_RECT      ((uint32_t)0x02000000U) /* Fill rectangle (BG clear)*/
+#define PSX_GP0_OT_TERMINATOR  ((uint32_t)0x00FFFFFFU) /* OT linked list end marker*/
+
+/* ---------------------------------------------------------------------------
+ * DMA Channel 2 (GPU DMA) Register Layout
+ * The GPU DMA channel transfers an Ordering Table from main RAM to the GPU.
+ * Channel 2 base = PSX_DMA_BASE + (2 * 0x10) = 0x1F801080 + 0x20 = 0x1F8010A0.
+ *
+ * DMA2_MADR: Memory Address Register — start address of the OT in main RAM.
+ * DMA2_BCR:  Block Control Register — transfer size (in OT mode, set to 0).
+ * DMA2_CHCR: Channel Control Register — initiates and controls the transfer.
+ *
+ * To trigger a GPU OT DMA:
+ *   1. Write the OT tail address to DMA2_MADR.
+ *   2. Write 0 to DMA2_BCR.
+ *   3. Write 0x01000401 to DMA2_CHCR (linked-list mode, from memory, start).
+ *   4. Poll CHCR bit 24 until it clears (DMA complete).
+ * --------------------------------------------------------------------------- */
+
+#define PSX_DMA_CH2_BASE       ((uint32_t)0x1F8010A0U) /* DMA channel 2 (GPU)  */
+#define PSX_DMA2_MADR          ((uint32_t)0x1F8010A0U) /* Memory address       */
+#define PSX_DMA2_BCR           ((uint32_t)0x1F8010A4U) /* Block count/size     */
+#define PSX_DMA2_CHCR          ((uint32_t)0x1F8010A8U) /* Channel control      */
+
+/* DMA2_CHCR values for OT transfer (linked-list mode): */
+#define PSX_DMA2_CHCR_START    ((uint32_t)0x01000401U) /* Start OT DMA to GPU  */
+#define PSX_DMA2_CHCR_BUSY     ((uint32_t)(1U << 24))  /* DMA busy flag bit 24 */
+
+/* DPCR: DMA Primary Control Register — enables individual channels. */
+#define PSX_DMA_DPCR           ((uint32_t)0x1F8010F0U)
+#define PSX_DMA_DICR           ((uint32_t)0x1F8010F4U) /* DMA Interrupt Control */
+
+/* VSync: polled via timer or GPU status bit 31 (odd/even field). */
+#define PSX_TIMER0_BASE        ((uint32_t)0x1F801100U) /* Timer 0 (dot clock)  */
+#define PSX_TIMER1_BASE        ((uint32_t)0x1F801110U) /* Timer 1 (H-blank)    */
+#define PSX_TIMER2_BASE        ((uint32_t)0x1F801120U) /* Timer 2 (system clk) */
+#define PSX_GPUSTAT_ODD_EVEN   ((uint32_t)(1U << 31))  /* Interlace field flag */
+
+/* CDROM, SPU, and Joypad base addresses are defined in the I/O Ports section above. */
 
 /* ---------------------------------------------------------------------------
  * BIOS ROM

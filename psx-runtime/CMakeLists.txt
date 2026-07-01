@@ -41,11 +41,13 @@ if(NOT PSX_HOST_TEST)
 endif()
 
 # ---------------------------------------------------------------------------
-# Core submodules — order matters (math has no deps; memory depends on math).
+# Core submodules — order matters (math has no deps; memory depends on math;
+# renderer depends on both math and memory).
 # ---------------------------------------------------------------------------
 
 add_subdirectory(core/math)
 add_subdirectory(core/memory)
+add_subdirectory(core/renderer)
 
 # ---------------------------------------------------------------------------
 # Tests (host-compiled only — not cross-compiled to MIPS)

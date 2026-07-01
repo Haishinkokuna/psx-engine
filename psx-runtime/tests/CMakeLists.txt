@@ -40,3 +40,21 @@ target_include_directories(test_memory PRIVATE
 )
 target_compile_features(test_memory PRIVATE cxx_std_17)
 add_test(NAME MemoryAllocators COMMAND test_memory)
+
+# test_renderer: verifies OT, packet pool, display buffer swap, and primitive alloc.
+# PSX_HOST_TEST stubs out MMIO register writes so the test runs on the host.
+add_executable(test_renderer
+    test_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/core/renderer/display.c
+    ${CMAKE_SOURCE_DIR}/core/memory/scratch.c
+    ${CMAKE_SOURCE_DIR}/core/memory/heap.c
+    ${CMAKE_SOURCE_DIR}/core/math/trig.c
+)
+target_include_directories(test_renderer PRIVATE
+    ${CMAKE_SOURCE_DIR}/core/math
+    ${CMAKE_SOURCE_DIR}/core/memory
+    ${CMAKE_SOURCE_DIR}/core/renderer
+)
+target_compile_definitions(test_renderer PRIVATE PSX_HOST_TEST=1)
+target_compile_features(test_renderer PRIVATE cxx_std_17)
+add_test(NAME Renderer COMMAND test_renderer)

@@ -134,5 +134,18 @@ target_compile_definitions(test_assets PRIVATE PSX_HOST_TEST=1)
 target_compile_features(test_assets PRIVATE cxx_std_17)
 add_test(NAME Assets COMMAND test_assets)
 
+# test_audio: validates SPU voice allocation and VAG loading
+add_executable(test_audio
+    test_audio.cpp
+    ${CMAKE_SOURCE_DIR}/core/audio/spu.c
+)
+target_include_directories(test_audio PRIVATE
+    ${CMAKE_SOURCE_DIR}/core/audio
+)
+target_compile_definitions(test_audio PRIVATE PSX_HOST_TEST=1)
+target_compile_features(test_audio PRIVATE cxx_std_17)
+add_test(NAME Audio COMMAND test_audio)
+
+
 
 

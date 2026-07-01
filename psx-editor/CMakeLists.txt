@@ -100,6 +100,7 @@ target_include_directories(psx_editor PRIVATE
 target_link_libraries(psx_editor PRIVATE
     SDL2::SDL2-static
     OpenGL::GL
+    psx_mcp_server
 )
 
 # On Windows, SDL2 needs the WinMain entry point adapter.

@@ -20,6 +20,13 @@
 #include <fstream>
 #include <sstream>
 
+#include <imgui.h>
+
+extern "C" {
+    #include "../../../psx-runtime/core/scene/scene.h"
+    #include "../../../psx-runtime/core/memory/heap.h"
+}
+
 /* ---------------------------------------------------------------------------
  * A minimal column-major 4x4 float matrix (host-side only — this is the
  * EDITOR running on modern hardware, not PSX runtime code).
@@ -452,4 +459,99 @@ uint32_t PsxArtifactRenderer::EndScene()
 void PsxArtifactRenderer::SetDitherEnabled(bool enabled)
 {
     m_dither_enabled = enabled;
+}
+
+/* ---------------------------------------------------------------------------
+ * RenderSceneGraph
+ * --------------------------------------------------------------------------- */
+
+void PsxArtifactRenderer::RenderSceneGraph()
+{
+    ImGui::Text("Active Entities: %u / %u", g_scene.active_count, MAX_ENTITIES);
+    ImGui::Separator();
+
+    if (ImGui::BeginChild("EntityTree", ImVec2(0, 0), true)) {
+        for (uint32_t i = 0; i < g_scene.active_count; i++) {
+            Entity* ent = Scene_GetEntityByIndex(i);
+            if (!ent) continue;
+
+            char label[64];
+            snprintf(label, sizeof(label), "Entity %u (Mesh: %u)", ent->id, ent->mesh_id);
+
+            if (ImGui::TreeNode(label)) {
+                ImGui::Text("Position: %.2f, %.2f, %.2f", 
+                    (float)ent->transform.position.vx / 4096.0f,
+                    (float)ent->transform.position.vy / 4096.0f,
+                    (float)ent->transform.position.vz / 4096.0f);
+                ImGui::TreePop();
+            }
+        }
+    }
+    ImGui::EndChild();
+}
+
+/* ---------------------------------------------------------------------------
+ * RenderMemoryMap
+ * --------------------------------------------------------------------------- */
+
+void PsxArtifactRenderer::RenderMemoryMap()
+{
+    ImGui::Text("Memory Usage (Main RAM & SPU RAM)");
+    ImGui::Separator();
+
+    /* 2MB Main RAM Progress */
+    float main_usage = (float)g_heap_allocated / (2.0f * 1024.0f * 1024.0f);
+    char main_overlay[64];
+    snprintf(main_overlay, sizeof(main_overlay), "Main RAM: %u KB / 2048 KB", g_heap_allocated / 1024);
+    ImGui::ProgressBar(main_usage, ImVec2(-1.0f, 0.0f), main_overlay);
+
+    /* 512KB SPU RAM Progress (Mocked for now since spu_alloc is static in spu.c) */
+    float spu_usage = 0.0f; /* We'd expose g_spu_alloc_ptr if we really needed it */
+    ImGui::ProgressBar(spu_usage, ImVec2(-1.0f, 0.0f), "SPU RAM: 0 KB / 512 KB");
+
+    /* 1KB Scratchpad Progress */
+    ImGui::ProgressBar(0.0f, ImVec2(-1.0f, 0.0f), "Scratchpad: 0 Bytes / 1024 Bytes");
+}
+
+/* ---------------------------------------------------------------------------
+ * RenderVRAMView
+ * --------------------------------------------------------------------------- */
+
+void PsxArtifactRenderer::RenderVRAMView()
+{
+    ImGui::Text("PSX VRAM Viewer (1024x512)");
+    ImGui::Separator();
+
+    ImVec2 avail = ImGui::GetContentRegionAvail();
+    
+    /* Calculate aspect ratio preserving size (2:1) */
+    float aspect = 1024.0f / 512.0f;
+    ImVec2 size = avail;
+    if (size.x / aspect > size.y) {
+        size.x = size.y * aspect;
+    } else {
+        size.y = size.x / aspect;
+    }
+
+    /* We just draw a colored rectangle to mock the VRAM preview since we 
+     * don't have a real 1024x512 VRAM texture in our OpenGL mock yet. */
+    ImVec2 p0 = ImGui::GetCursorScreenPos();
+    ImVec2 p1 = ImVec2(p0.x + size.x, p0.y + size.y);
+
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    draw_list->AddRectFilled(p0, p1, IM_COL32(20, 20, 40, 255));
+    draw_list->AddRect(p0, p1, IM_COL32(255, 255, 255, 100));
+
+    /* Draw mock display buffers */
+    ImVec2 db1_0 = ImVec2(p0.x, p0.y);
+    ImVec2 db1_1 = ImVec2(p0.x + (320.0f/1024.0f)*size.x, p0.y + (240.0f/512.0f)*size.y);
+    draw_list->AddRectFilled(db1_0, db1_1, IM_COL32(80, 40, 40, 150));
+    draw_list->AddText(ImVec2(db1_0.x + 4, db1_0.y + 4), IM_COL32(255,255,255,255), "DispBuf 1");
+
+    ImVec2 db2_0 = ImVec2(p0.x, p0.y + (256.0f/512.0f)*size.y);
+    ImVec2 db2_1 = ImVec2(p0.x + (320.0f/1024.0f)*size.x, p0.y + ((256.0f+240.0f)/512.0f)*size.y);
+    draw_list->AddRectFilled(db2_0, db2_1, IM_COL32(40, 80, 40, 150));
+    draw_list->AddText(ImVec2(db2_0.x + 4, db2_0.y + 4), IM_COL32(255,255,255,255), "DispBuf 2");
+
+    ImGui::Dummy(size); /* Occupy space */
 }

@@ -93,17 +93,32 @@ public:
     void DrawDebugCube(float rot_x, float rot_y);
 
     /* -----------------------------------------------------------------------
-     * EndScene — Unbind the FBO and return the rendered texture ID.
-     *
-     * @return  OpenGL texture ID suitable for ImGui::Image().
-     *          Cast to (ImTextureID) / (void*) before passing to ImGui.
+     * EndScene — Unbinds the FBO.
+     * Returns the OpenGL texture ID of the color attachment, which can be
+     * passed to ImGui::Image().
      * ----------------------------------------------------------------------- */
     uint32_t EndScene();
 
     /* -----------------------------------------------------------------------
-     * SetDitherEnabled — Toggle Bayer dithering pass.
+     * RenderSceneGraph — Draws the interactive entity tree using ImGui.
+     * ----------------------------------------------------------------------- */
+    void RenderSceneGraph();
+
+    /* -----------------------------------------------------------------------
+     * RenderMemoryMap — Draws the memory usage visualization using ImGui.
+     * ----------------------------------------------------------------------- */
+    void RenderMemoryMap();
+
+    /* -----------------------------------------------------------------------
+     * RenderVRAMView — Draws the mock PSX VRAM 1024x512 texture using ImGui.
+     * ----------------------------------------------------------------------- */
+    void RenderVRAMView();
+
+    /* -----------------------------------------------------------------------
+     * SetDitherEnabled — Toggle PSX Bayer dithering simulation.
      * ----------------------------------------------------------------------- */
     void SetDitherEnabled(bool enabled);
+
 
     /* -----------------------------------------------------------------------
      * IsInitialized — Returns true if Init() succeeded.

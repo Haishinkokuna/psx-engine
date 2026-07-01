@@ -28,6 +28,13 @@ void EditorLayout::Init()
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
+    /* Attempt to load retro PSX font */
+    ImFont* font = io.Fonts->AddFontFromFileTTF("assets/psx_font.ttf", 16.0f);
+    if (!font) {
+        /* Fallback if missing */
+        io.Fonts->AddFontDefault();
+    }
+
     Log("[PSX Editor] Editor initialized. Welcome.");
     Log("[PSX Editor] Debug cube rendering with PSX artifact simulation.");
 }
@@ -151,7 +158,7 @@ void EditorLayout::RenderInspectorPanel(PsxArtifactRenderer& renderer,
             renderer.GetViewportHeight());
     }
 
-    if (ImGui::CollapsingHeader("Debug Cube", ImGuiTreeNodeFlags_DefaultOpen)) {
+    if (ImGui::CollapsingHeader("Debug Cube")) {
         ImGui::SliderFloat("Rotation X", &m_rot_x, -180.0f, 180.0f, "%.1f deg");
         ImGui::SliderFloat("Rotation Y", &m_rot_y, -180.0f, 180.0f, "%.1f deg");
 
@@ -159,6 +166,18 @@ void EditorLayout::RenderInspectorPanel(PsxArtifactRenderer& renderer,
             m_rot_x = 15.0f;
             m_rot_y = 30.0f;
         }
+    }
+
+    if (ImGui::CollapsingHeader("Scene Graph", ImGuiTreeNodeFlags_DefaultOpen)) {
+        renderer.RenderSceneGraph();
+    }
+
+    if (ImGui::CollapsingHeader("Memory Map", ImGuiTreeNodeFlags_DefaultOpen)) {
+        renderer.RenderMemoryMap();
+    }
+
+    if (ImGui::CollapsingHeader("VRAM Viewer", ImGuiTreeNodeFlags_DefaultOpen)) {
+        renderer.RenderVRAMView();
     }
 
     if (ImGui::CollapsingHeader("PSX Hardware Specs")) {

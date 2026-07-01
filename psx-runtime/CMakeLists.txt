@@ -50,6 +50,7 @@ add_subdirectory(core/memory)
 add_subdirectory(core/renderer)
 add_subdirectory(core/gte)
 add_subdirectory(core/scene)
+add_subdirectory(core/input)
 
 # ---------------------------------------------------------------------------
 # Tests (host-compiled only — not cross-compiled to MIPS)

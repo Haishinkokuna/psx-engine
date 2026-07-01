@@ -97,3 +97,16 @@ target_compile_definitions(test_scene PRIVATE PSX_HOST_TEST=1)
 target_compile_features(test_scene PRIVATE cxx_std_17)
 add_test(NAME Scene COMMAND test_scene)
 
+# test_input: validates the digital joypad driver
+add_executable(test_input
+    test_input.cpp
+    ${CMAKE_SOURCE_DIR}/core/input/joypad.c
+)
+target_include_directories(test_input PRIVATE
+    ${CMAKE_SOURCE_DIR}/core/input
+)
+target_compile_definitions(test_input PRIVATE PSX_HOST_TEST=1)
+target_compile_features(test_input PRIVATE cxx_std_17)
+add_test(NAME Input COMMAND test_input)
+
+

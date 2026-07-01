@@ -109,4 +109,30 @@ target_compile_definitions(test_input PRIVATE PSX_HOST_TEST=1)
 target_compile_features(test_input PRIVATE cxx_std_17)
 add_test(NAME Input COMMAND test_input)
 
+# test_assets: validates TIM/TMD parsing and pointer relinking
+add_executable(test_assets
+    test_assets.cpp
+    ${CMAKE_SOURCE_DIR}/core/assets/cdrom.c
+    ${CMAKE_SOURCE_DIR}/core/assets/tim.c
+    ${CMAKE_SOURCE_DIR}/core/assets/tmd.c
+    ${CMAKE_SOURCE_DIR}/core/gte/gte_regs.c
+    ${CMAKE_SOURCE_DIR}/core/renderer/display.c
+    ${CMAKE_SOURCE_DIR}/core/memory/scratch.c
+    ${CMAKE_SOURCE_DIR}/core/memory/heap.c
+    ${CMAKE_SOURCE_DIR}/core/math/trig.c
+    ${CMAKE_SOURCE_DIR}/core/scene/transform.c
+)
+target_include_directories(test_assets PRIVATE
+    ${CMAKE_SOURCE_DIR}/core/assets
+    ${CMAKE_SOURCE_DIR}/core/math
+    ${CMAKE_SOURCE_DIR}/core/memory
+    ${CMAKE_SOURCE_DIR}/core/renderer
+    ${CMAKE_SOURCE_DIR}/core/gte
+    ${CMAKE_SOURCE_DIR}/core/scene
+)
+target_compile_definitions(test_assets PRIVATE PSX_HOST_TEST=1)
+target_compile_features(test_assets PRIVATE cxx_std_17)
+add_test(NAME Assets COMMAND test_assets)
+
+
 

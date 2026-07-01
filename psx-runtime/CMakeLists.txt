@@ -51,6 +51,7 @@ add_subdirectory(core/renderer)
 add_subdirectory(core/gte)
 add_subdirectory(core/scene)
 add_subdirectory(core/input)
+add_subdirectory(core/assets)
 
 # ---------------------------------------------------------------------------
 # Tests (host-compiled only — not cross-compiled to MIPS)

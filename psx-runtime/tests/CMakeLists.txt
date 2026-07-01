@@ -58,3 +58,24 @@ target_include_directories(test_renderer PRIVATE
 target_compile_definitions(test_renderer PRIVATE PSX_HOST_TEST=1)
 target_compile_features(test_renderer PRIVATE cxx_std_17)
 add_test(NAME Renderer COMMAND test_renderer)
+
+# test_gte: validates the software GTE pipeline (RTPS/RTPT, NCLIP, AVSZ3,
+# GTE_TransformTriangle) on the host. PSX_HOST_TEST activates the software
+# register file (g_gte_regs) and disables the MIPS inline assembly paths.
+add_executable(test_gte
+    test_gte.cpp
+    ${CMAKE_SOURCE_DIR}/core/gte/gte_regs.c
+    ${CMAKE_SOURCE_DIR}/core/renderer/display.c
+    ${CMAKE_SOURCE_DIR}/core/memory/scratch.c
+    ${CMAKE_SOURCE_DIR}/core/memory/heap.c
+    ${CMAKE_SOURCE_DIR}/core/math/trig.c
+)
+target_include_directories(test_gte PRIVATE
+    ${CMAKE_SOURCE_DIR}/core/math
+    ${CMAKE_SOURCE_DIR}/core/memory
+    ${CMAKE_SOURCE_DIR}/core/renderer
+    ${CMAKE_SOURCE_DIR}/core/gte
+)
+target_compile_definitions(test_gte PRIVATE PSX_HOST_TEST=1)
+target_compile_features(test_gte PRIVATE cxx_std_17)
+add_test(NAME GTE COMMAND test_gte)

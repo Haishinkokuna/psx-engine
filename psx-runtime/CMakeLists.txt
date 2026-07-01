@@ -48,6 +48,7 @@ endif()
 add_subdirectory(core/math)
 add_subdirectory(core/memory)
 add_subdirectory(core/renderer)
+add_subdirectory(core/gte)
 
 # ---------------------------------------------------------------------------
 # Tests (host-compiled only — not cross-compiled to MIPS)

@@ -36,10 +36,21 @@ FetchContent_MakeAvailable(nlohmann_json)
 add_library(psx_mcp_server STATIC
     src/McpServer.cpp
     src/tools/CoreTools.cpp
+    
+    # We compile the runtime C files directly into the MCP Server so it
+    # can manage the scene graph locally for the editor.
+    ${CMAKE_SOURCE_DIR}/psx-runtime/core/scene/scene.c
+    ${CMAKE_SOURCE_DIR}/psx-runtime/core/scene/entity.c
+    ${CMAKE_SOURCE_DIR}/psx-runtime/core/scene/transform.c
+    ${CMAKE_SOURCE_DIR}/psx-runtime/core/scene/camera.c
+    ${CMAKE_SOURCE_DIR}/psx-runtime/core/math/trig.c
 )
+
 
 target_include_directories(psx_mcp_server PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/psx-runtime/core/math
+    ${CMAKE_SOURCE_DIR}/psx-runtime/core/scene
 )
 
 target_link_libraries(psx_mcp_server PUBLIC

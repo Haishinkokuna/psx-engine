@@ -79,3 +79,21 @@ target_include_directories(test_gte PRIVATE
 target_compile_definitions(test_gte PRIVATE PSX_HOST_TEST=1)
 target_compile_features(test_gte PRIVATE cxx_std_17)
 add_test(NAME GTE COMMAND test_gte)
+
+# test_scene: validates the scene graph, entity lifecycle, transform math
+add_executable(test_scene
+    test_scene.cpp
+    ${CMAKE_SOURCE_DIR}/core/scene/transform.c
+    ${CMAKE_SOURCE_DIR}/core/scene/camera.c
+    ${CMAKE_SOURCE_DIR}/core/scene/entity.c
+    ${CMAKE_SOURCE_DIR}/core/scene/scene.c
+    ${CMAKE_SOURCE_DIR}/core/math/trig.c
+)
+target_include_directories(test_scene PRIVATE
+    ${CMAKE_SOURCE_DIR}/core/math
+    ${CMAKE_SOURCE_DIR}/core/scene
+)
+target_compile_definitions(test_scene PRIVATE PSX_HOST_TEST=1)
+target_compile_features(test_scene PRIVATE cxx_std_17)
+add_test(NAME Scene COMMAND test_scene)
+

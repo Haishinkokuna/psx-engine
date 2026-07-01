@@ -49,6 +49,7 @@ add_subdirectory(core/math)
 add_subdirectory(core/memory)
 add_subdirectory(core/renderer)
 add_subdirectory(core/gte)
+add_subdirectory(core/scene)
 
 # ---------------------------------------------------------------------------
 # Tests (host-compiled only — not cross-compiled to MIPS)

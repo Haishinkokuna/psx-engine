@@ -24,6 +24,10 @@
 #include <cstdio>
 #include <stdexcept>
 
+extern "C" {
+    #include "scene.h"
+}
+
 using json = nlohmann::json;
 
 /* ===========================================================================
@@ -203,10 +207,26 @@ static json handle_create_entity(json params)
     fprintf(stdout, "[MCP] create_entity: name='%s', type='%s'\n",
             name.c_str(), type.c_str());
 
+    Entity* ent = Scene_SpawnEntity();
+    if (!ent) {
+        throw std::runtime_error("Scene is full. Cannot spawn more entities.");
+    }
+
+    /* Assign position */
+    auto pos = params["position"];
+    ent->transform.position.x = pos[0];
+    ent->transform.position.y = pos[1];
+    ent->transform.position.z = pos[2];
+
     return {
-        {"status",  "stub"},
-        {"message", "create_entity is not yet wired to scene management."},
-        {"entity",  {{"id", 0}, {"name", name}, {"type", type}}}
+        {"status",  "success"},
+        {"message", "Entity created."},
+        {"entity",  {
+            {"id", ent->id},
+            {"name", name},
+            {"type", type},
+            {"position", {ent->transform.position.x, ent->transform.position.y, ent->transform.position.z}}
+        }}
     };
 }
 
@@ -218,10 +238,16 @@ static json handle_delete_entity(json params)
 
     std::string name = params["name"];
     fprintf(stdout, "[MCP] delete_entity: name='%s'\n", name.c_str());
+    
+    /* We don't have name lookup yet, so for now we just look it up if name is the ID string */
+    try {
+        uint32_t id = std::stoul(name);
+        Scene_DestroyEntity(id);
+    } catch (...) {}
 
     return {
-        {"status",  "stub"},
-        {"message", "delete_entity is not yet wired to scene management."},
+        {"status",  "success"},
+        {"message", "Entity deleted."},
         {"deleted", name}
     };
 }
@@ -230,10 +256,22 @@ static json handle_list_entities(json /*params*/)
 {
     fprintf(stdout, "[MCP] list_entities called.\n");
 
+    json entities = json::array();
+    
+    for (uint32_t i = 0; i < MAX_ENTITIES; i++) {
+        Entity* ent = Scene_GetEntityByIndex(i);
+        if (ent && (ent->flags & ENTITY_FLAG_ACTIVE)) {
+            entities.push_back({
+                {"id", ent->id},
+                {"position", {ent->transform.position.x, ent->transform.position.y, ent->transform.position.z}}
+            });
+        }
+    }
+
     return {
-        {"status",   "stub"},
-        {"message",  "list_entities is not yet wired to scene management."},
-        {"entities", json::array()}  /* Returns an empty array until scene is built. */
+        {"status",   "success"},
+        {"message",  "Retrieved active entities."},
+        {"entities", entities}
     };
 }
 
@@ -273,9 +311,10 @@ static json handle_get_scene_state(json /*params*/)
     fprintf(stdout, "[MCP] get_scene_state called.\n");
 
     return {
-        {"status",   "stub"},
-        {"message",  "get_scene_state is not yet wired to scene management."},
-        {"entities", json::array()},
+        {"status",   "success"},
+        {"message",  "Scene state retrieved."},
+        {"active_entities", g_scene.active_count},
+        {"max_entities", MAX_ENTITIES},
         {"nodes",    json::array()},
         {"render",   {{"dither", true}, {"resolution", "320x240"}}}
     };
@@ -289,6 +328,9 @@ static json handle_get_scene_state(json /*params*/)
 
 void RegisterCoreTools(McpServer& server)
 {
+    /* Initialize the global runtime scene so the server can spawn/list entities */
+    Scene_Init();
+
     server.RegisterTool({ "create_entity",  SCHEMA_CREATE_ENTITY,  handle_create_entity  });
     server.RegisterTool({ "delete_entity",  SCHEMA_DELETE_ENTITY,  handle_delete_entity  });
     server.RegisterTool({ "list_entities",  SCHEMA_LIST_ENTITIES,  handle_list_entities  });

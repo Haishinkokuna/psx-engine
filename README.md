@@ -53,6 +53,41 @@ Two completely separate allocators with no shared state.
 - `scratch.h` / `scratch.c` — Scratchpad bump allocator at `0x1F800000`. 4-byte aligned allocations, frame-level `Scratch_Reset()` semantics, overflow protection with NULL return.
 - `heap.h` / `heap.c` — Main RAM first-fit freelist over approximately 1.875 MB. In-band block headers (8 bytes overhead), `HEAP_MAGIC` double-free detection, forward and backward coalescing on free.
 
+### psx-runtime/core/renderer
+
+Double-buffered hardware rendering wrapper for the PlayStation GPU.
+- `display.h` / `display.c` — Manages the 320x240 NTSC double-buffering logic, VRAM environment setup, and hardware display synchronization (`VSync`).
+- `prim.h` / `prim.c` — Fast linear allocator for GPU packets (`POLY_F3`, `POLY_G4`, etc.) and `OrderingTable` linked-list management for depth-sorting.
+
+### psx-runtime/core/gte
+
+Geometry Transformation Engine (Coprocessor 2) driver and math pipeline.
+- `gte.h` / `gte_regs.c` — Low-level interface for reading and writing to MIPS Coprocessor 2 control and data registers via `mfc2` and `mtc2` inline assembly instructions.
+- `gte_project.h` / `gte_project.c` — Implements `RTPT` (perspective projection of 3 vertices at once), `NCLIP` (backface culling), and `AVSZ3` (average Z-depth calculation for Ordering Tables).
+
+### psx-runtime/core/scene
+
+Lightweight Scene Graph preventing runtime heap fragmentation.
+- `transform.h` / `camera.h` — 3D spatial transforms, calculating 3x3 rotation matrices using Euler angles, and generating view matrices via transpose.
+- `scene.h` / `entity.h` — Manages a fixed flat array (`MAX_ENTITIES = 256`) pool. Bypasses dynamic allocation to ensure contiguous, cache-friendly iterations for the GTE pipeline.
+
+### psx-runtime/core/input
+
+Joypad driver for the standard digital controller (SIO0).
+- `joypad.h` / `joypad.c` — Hardware register polling. Abstracts 16-bit payload into `JoypadState` (buttons held, newly pressed, and newly released). Includes a mock interface for Editor simulations.
+
+### psx-runtime/core/assets
+
+CD-ROM reading and asset deserialization pipeline.
+- `cdrom.h` / `cdrom.c` — Asynchronous ISO9660 file loading abstraction.
+- `tim.c` — Sony Texture Image format parser (Color Lookup Tables and pixel arrays).
+- `tmd.c` — Sony 3D Model format parser. Translates relative file offsets into absolute pointers in memory instantly upon load. Iterates `POLY_F3` definitions and passes them to the GTE.
+
+### psx-runtime/core/audio
+
+Sound Processing Unit (SPU) driver.
+- `spu.h` / `spu.c` — Dynamically allocates the 512KB SPU-RAM limit and streams compressed `.VAG` ADPCM samples. Includes `SPU_PlayVoice()` to auto-locate and trigger any of the 24 hardware voices via bitmasks without manual channel tracking.
+
 ### psx-editor
 
 Desktop application running on the developer's PC. It does NOT produce PSX binary output directly — that is the cross-compiler toolchain's job. The editor provides:
